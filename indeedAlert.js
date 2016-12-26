@@ -3,6 +3,8 @@ const indeed = require('../indeed-scraper/index.js');
 const fs = require('fs');
 const request = require('request');
 const cheerio = require('cheerio');
+const nodemailer = require('nodemailer');
+const emailConfig = require('./emailConfig.js');
 require('longjohn');
 
 // Keywords need to be lowercase
@@ -12,6 +14,8 @@ const keywords = [
   {key: 'recent graduate', value: 5},
   {key: 'fresh graduate', value: 5},
   {key: 'developer', value: 5},
+  {key: 'software engineer', value: 5},
+  {key: 'programmer', value: 5},
   {key: 'javascript', value: 3},
   {key: 'node js', value: 3},
   {key: 'node.js', value: 3},
@@ -20,9 +24,7 @@ const keywords = [
   {key: 'sql', value: 1},
   {key: 'java', value: 1},
   {key: 'c++', value: 1},
-  {key: 'python', value: 1},
-  {key: 'programmer', value: 1},
-  {key: 'software engineer', value: 1}
+  {key: 'python', value: 1}
 ];
 
 /* Get all the jobs for an array of cities */
@@ -35,14 +37,17 @@ function getAllJobs(){
   return Promise.all(cities);
 }
 
-getAllJobs().then(createHtmlPage);
-
 function createHtmlPage(cities){
-  sortJobs(cities, keywords).then(jobs => {
-    const fd = fs.openSync('jobs.html', 'w');
-    fs.appendFileSync(fd, '<!DOCTYPE html> <html><header><h1>Jobs for Ryan</h1></header><body>');
-    jobs.forEach(e => generateJobHtml(e, fd));
-    fs.appendFileSync(fd, '</body></html>');
+  return new Promise((resolve, reject) => {
+    const fileName = 'jobs.html';
+    sortJobs(cities, keywords).then(jobs => {
+      const fd = fs.openSync(fileName, 'w');
+      fs.appendFileSync(fd, '<!DOCTYPE html> <html><header><h1>Jobs for Ryan</h1></header><body>');
+      jobs.forEach(e => generateJobHtml(e, fd));
+      fs.appendFileSync(fd, '</body></html>');
+      fs.closeSync(fd);
+      resolve(fileName);
+    });
   });
 }
 
@@ -99,11 +104,42 @@ function getJobInfo(job){
 function generateJobHtml(job, fd){
   let html = '';
   html += '<hr>';
-  html += job.score;
   html += '<p>';
-  html += '<h3><a href="' + job.url + '">' + job.title + '</a></h3>';
-  html += '<h4>' + job.company + '</h4>';
+  html += '<h3>';
+  html += '<a href="' + job.url + '">' + job.title + '</a>';
+  html += ' | ' + job.score;
+  html += '</h3>';
+  html += '<h4>' + job.company + ' (' + job.location + ')' + '</h4>';
   html += '<p>' + job.summary + '</p>';
   html += '</p>';
   fs.appendFileSync(fd, html);
 }
+
+function sendEmail(fileName){
+  const msg = fs.readFileSync(fileName);
+
+  const from = emailConfig.from;
+  const pass = emailConfig.password;
+  const to = emailConfig.to;
+  const transporter = nodemailer.createTransport('smtps://'+from+':'+pass+'@smtp.gmail.com');
+  
+  const d = new Date();
+  const todayString = (d.getMonth()+1) + '-' + d.getDate();
+
+  const mailOptions = {
+    from: from, // sender address
+    to: to, // list of receivers
+    subject: 'Indeed Jobs for ' + todayString, // Subject line
+    html: msg // plaintext body
+  };
+  transporter.sendMail(mailOptions, function(error, info){
+    if(error){
+      return console.log(error);
+    }
+    console.log('Jobs email sent: ' + info.response);
+  });
+}
+
+/* The entry point */
+
+getAllJobs().then(createHtmlPage).then(sendEmail);
