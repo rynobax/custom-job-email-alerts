@@ -1,3 +1,4 @@
 node_modules
 *.html
-emailConfig.js
+config/email.js
+start.bat

@@ -1,3 +1,0 @@
-module.exports.to = 'sender@gmail.com';
-module.exports.from = 'reciever@gmail.com';
-module.exports.password = 'sender_password';
