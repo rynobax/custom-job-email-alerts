@@ -1,0 +1,28 @@
+{
+  "name": "job-search",
+  "version": "1.0.0",
+  "description": "",
+  "main": "jobSearch.js",
+  "dependencies": {
+    "body-parser": "^1.15.2",
+    "cheerio": "^0.22.0",
+    "express": "^4.14.0",
+    "indeed-scraper": "^2.0.2",
+    "nodemailer": "^2.7.0",
+    "request": "^2.79.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rynobax/custom-job-email-alerts.git"
+  },
+  "author": "Ryan Baxley",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/rynobax/custom-job-email-alerts/issues"
+  },
+  "homepage": "https://github.com/rynobax/custom-job-email-alerts#readme"
+}
