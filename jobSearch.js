@@ -1,5 +1,4 @@
-//const indeed = require('indeed-scraper');
-const indeed = require('../indeed-scraper/index.js');
+const indeed = require('indeed-scraper');
 const fs = require('fs');
 const request = require('request');
 const nodemailer = require('nodemailer');
@@ -17,7 +16,6 @@ const keywords = [
   {key: 'programmer', value: 5},
   {key: 'javascript', value: 3},
   {key: 'node js', value: 3},
-  {key: 'node.js', value: 3},
   {key: 'angular', value: 3},
   {key: 'android', value: 3},
   {key: 'sql', value: 1},
@@ -34,6 +32,7 @@ function getAllJobs(){
   cities.push(queryPromise('Software', 'Charlotte, NC',       25, 'entry_level', 2));
   cities.push(queryPromise('Software', 'Clemson, SC',         50, 'entry_level', 2));
   cities.push(queryPromise('Software', 'Charleston, SC',      25, 'entry_level', 2));
+  cities.push(queryPromise('Javascript Developer', 'Greenville, SC', 250, 'entry_level', 2));
   return Promise.all(cities);
 }
 
