@@ -1,5 +1,4 @@
-//const indeed = require('indeed-scraper');
-const indeed = require('../indeed-scraper/index.js');
+const indeed = require('indeed-scraper');
 const fs = require('fs');
 const request = require('request');
 const nodemailer = require('nodemailer');
@@ -28,13 +27,12 @@ const keywords = [
 /* Get all the jobs for an array of cities */
 function getAllJobs(){
   const cities = [];
-  const query = 'Software';
-  const age = 2;
-  cities.push(queryPromise(query, 'Atlanta, GA',         25, 'entry_level', age));
-  cities.push(queryPromise(query, 'Raleigh-Durham, NC',  25, 'entry_level', age));
-  cities.push(queryPromise(query, 'Charlotte, NC',       25, 'entry_level', age));
-  cities.push(queryPromise(query, 'Clemson, SC',         50, 'entry_level', age));
-  cities.push(queryPromise(query, 'Charleston, SC',      25, 'entry_level', age));
+  cities.push(queryPromise('Software', 'Atlanta, GA',         25, 'entry_level', 2));
+  cities.push(queryPromise('Software', 'Raleigh-Durham, NC',  25, 'entry_level', 2));
+  cities.push(queryPromise('Software', 'Charlotte, NC',       25, 'entry_level', 2));
+  cities.push(queryPromise('Software', 'Clemson, SC',         50, 'entry_level', 2));
+  cities.push(queryPromise('Software', 'Charleston, SC',      25, 'entry_level', 2));
+  cities.push(queryPromise('Javascript Developer', 'Greenville, SC', 250, 'entry_level', 2));
   return Promise.all(cities);
 }
 
@@ -92,7 +90,7 @@ function sortJobs(cities, keywords){
 
 function getKeyScore(jobInfo, keywords){
   const jobInfoLC = {
-    title: jobInfo.title.toLowerCase(), 
+    title: jobInfo.title.toLowerCase(),
     body: jobInfo.body.toLowerCase()
   };
   return keywords.reduce((s, e) => {
@@ -146,7 +144,7 @@ function sendEmail(fileName){
   const transporter = nodemailer.createTransport('smtps://'+from+':'+pass+'@smtp.gmail.com');
 
   console.log('Attempting to send email from ' + from + ' to ' + to);
-  
+
   const d = new Date();
   const todayString = (d.getMonth()+1) + '-' + d.getDate();
 
