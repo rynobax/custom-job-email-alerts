@@ -17,7 +17,6 @@ const keywords = [
   {key: 'programmer', value: 5},
   {key: 'javascript', value: 3},
   {key: 'node js', value: 3},
-  {key: 'node.js', value: 3},
   {key: 'angular', value: 3},
   {key: 'android', value: 3},
   {key: 'sql', value: 1},
@@ -29,11 +28,13 @@ const keywords = [
 /* Get all the jobs for an array of cities */
 function getAllJobs(){
   const cities = [];
-  cities.push(queryPromise('Software', 'Atlanta, GA',         25, 'entry_level', 2));
-  cities.push(queryPromise('Software', 'Raleigh-Durham, NC',  25, 'entry_level', 2));
-  cities.push(queryPromise('Software', 'Charlotte, NC',       25, 'entry_level', 2));
-  cities.push(queryPromise('Software', 'Clemson, SC',         50, 'entry_level', 2));
-  cities.push(queryPromise('Software', 'Charleston, SC',      25, 'entry_level', 2));
+  const query = 'Software';
+  const age = 2;
+  cities.push(queryPromise(query, 'Atlanta, GA',         25, 'entry_level', age));
+  cities.push(queryPromise(query, 'Raleigh-Durham, NC',  25, 'entry_level', age));
+  cities.push(queryPromise(query, 'Charlotte, NC',       25, 'entry_level', age));
+  cities.push(queryPromise(query, 'Clemson, SC',         50, 'entry_level', age));
+  cities.push(queryPromise(query, 'Charleston, SC',      25, 'entry_level', age));
   return Promise.all(cities);
 }
 
@@ -49,15 +50,19 @@ function queryPromise(query, city, radius, level, maxAge){
 }
 
 function createHtmlPage(cities){
-  console.log('cities: ', cities);
   return new Promise((resolve, reject) => {
     const fileName = 'jobs.html';
-    sortJobs(cities, keywords).then(jobs => {
+    sortJobs(cities, keywords)
+      .then(jobs => {
       const fd = fs.openSync(fileName, 'w');
       const d = new Date();
       const todayString = (d.getMonth()+1) + '-' + d.getDate();
       fs.appendFileSync(fd, '<!DOCTYPE html> <html><header><h1>Jobs for ' + todayString + '</h1></header><body>');
-      jobs.forEach(e => generateJobHtml(e, fd));
+      jobs.forEach(e => {
+        if(e.score > 0){
+          generateJobHtml(e, fd);
+        }
+      });
       fs.appendFileSync(fd, '</body></html>');
       fs.closeSync(fd);
       resolve(fileName);
@@ -70,20 +75,22 @@ function sortJobs(cities, keywords){
     const jobs = [].concat.apply([], cities);
     const jobInfoPromises = jobs.map(e => getJobInfo(e));
     Promise.all(jobInfoPromises).then( jobsInfo => {
-      console.log('jobsInfo: ', jobsInfo);
       jobsInfo.forEach((jobInfo, i, a) => {
         const score = getKeyScore(jobInfo, keywords);
         jobs[i].score = score;
+        jobs[i].id = jobInfo.title.toLowerCase() + jobs[i].summary.toLowerCase();
       });
-      const sorted = jobs.sort((a, b) => b.score - a.score);
-      const filtered = jobs.filter(e => e.score > -1);
-      resolve(filtered);
+      const idMap = jobs.map(e => e.id);
+      const result = jobs
+        .filter((e, i) => idMap.indexOf(e.id) == i)
+        .filter(e => e.score > -1)
+        .sort((a, b) => b.score - a.score);
+      resolve(result);
     });
   });
 }
 
 function getKeyScore(jobInfo, keywords){
-  console.log('\n\nGetting score of ' + jobInfo.title);
   const jobInfoLC = {
     title: jobInfo.title.toLowerCase(), 
     body: jobInfo.body.toLowerCase()
@@ -92,11 +99,11 @@ function getKeyScore(jobInfo, keywords){
     let v = 0;
     if(jobInfoLC.title.includes(e.key)){
       v += e.value * 3;
-      console.log('Found ' + e.key + ' in title ' + e.value * 3);
+      //console.log('Found ' + e.key + ' in title ' + e.value * 3);
     }
     if(jobInfoLC.body.includes(e.key)){
       v += e.value;
-      console.log('Found ' + e.key + ' in body ' + e.value);
+      //console.log('Found ' + e.key + ' in body ' + e.value);
     }
     return s + v;
   }, 0);
@@ -104,7 +111,6 @@ function getKeyScore(jobInfo, keywords){
 
 function getJobInfo(job){
   return new Promise((resolve, reject) => {
-    console.log('about to request: ' + job.url);
     request({url: job.url, timeout: 1500}, (error, response, body) => {
       // If we can load the page add that to the info,
       // otherwise just use the title as the info
@@ -125,7 +131,7 @@ function generateJobHtml(job, fd){
   html += '<a href="' + job.url + '">' + job.title + '</a>';
   html += ' | ' + job.score;
   html += '</h3>';
-  html += '<h4>' + job.company + ' (' + job.location + ')' + '</h4>';
+  html += '<h4>' + job.company + ' (' + job.location + ') '+ '</h4><i>' + job.postDate + '</i>';
   html += '<p>' + job.summary + '</p>';
   html += '</p>';
   fs.appendFileSync(fd, html);
