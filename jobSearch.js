@@ -16,6 +16,8 @@ const keywords = [
   {key: 'programmer', value: 5},
   {key: 'javascript', value: 3},
   {key: 'node js', value: 3},
+  {key: 'nodejs', value: 3},
+  {key: 'node.js', value: 3},
   {key: 'angular', value: 3},
   {key: 'android', value: 3},
   {key: 'sql', value: 1},
@@ -27,12 +29,13 @@ const keywords = [
 /* Get all the jobs for an array of cities */
 function getAllJobs(){
   const cities = [];
-  cities.push(queryPromise('Software', 'Atlanta, GA',         25, 'entry_level', 2));
-  cities.push(queryPromise('Software', 'Raleigh-Durham, NC',  25, 'entry_level', 2));
-  cities.push(queryPromise('Software', 'Charlotte, NC',       25, 'entry_level', 2));
-  cities.push(queryPromise('Software', 'Clemson, SC',         50, 'entry_level', 2));
-  cities.push(queryPromise('Software', 'Charleston, SC',      25, 'entry_level', 2));
-  cities.push(queryPromise('Javascript Developer', 'Greenville, SC', 250, 'entry_level', 2));
+  const age = 3;
+  cities.push(queryPromise('Software', 'Atlanta, GA',         25, 'entry_level', age));
+  cities.push(queryPromise('Software', 'Raleigh-Durham, NC',  25, 'entry_level', age));
+  cities.push(queryPromise('Software', 'Charlotte, NC',       25, 'entry_level', age));
+  cities.push(queryPromise('Software', 'Clemson, SC',         50, 'entry_level', age));
+  cities.push(queryPromise('Software', 'Charleston, SC',      25, 'entry_level', age));
+  cities.push(queryPromise('Javascript Developer', 'Greenville, SC', 250, 'entry_level', age));
   return Promise.all(cities);
 }
 
