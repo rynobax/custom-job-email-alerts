@@ -6,6 +6,7 @@ const ini = require('ini');
 const emailConfig = ini.parse(fs.readFileSync('./config/email.ini', 'utf-8'))
 
 // Keywords need to be lowercase
+// TODO: Use the config file instead of declaring them here
 const keywords = [
   {key: 'junior', value: 5},
   {key: 'entry', value: 5},
@@ -24,7 +25,6 @@ const keywords = [
   {key: 'python', value: 1}
 ];
 
-/* Get all the jobs for an array of cities */
 function getAllJobs(){
   const cities = [];
   cities.push(queryPromise('Software', 'Atlanta, GA',         25, 'entry_level', 2));
@@ -37,6 +37,7 @@ function getAllJobs(){
 }
 
 function queryPromise(query, city, radius, level, maxAge){
+  /* Returns a promise that will resolve to all the jobs from a query */
   return new Promise((resolve, reject) => {
     indeed.query({query: query, city: city, radius: radius, level: level, maxAge: maxAge})
       .then(res => resolve(res))
@@ -48,6 +49,7 @@ function queryPromise(query, city, radius, level, maxAge){
 }
 
 function createHtmlPage(cities){
+  /* Returns a promise that will resolve to a name of the file that has all the jobs in HTML format */
   return new Promise((resolve, reject) => {
     const fileName = 'jobs.html';
     sortJobs(cities, keywords)
@@ -69,6 +71,7 @@ function createHtmlPage(cities){
 }
 
 function sortJobs(cities, keywords){
+  /* Uses the keywords to sort all the jobs by their relevance */
   return new Promise((resolve, reject) => {
     const jobs = [].concat.apply([], cities);
     const jobInfoPromises = jobs.map(e => getJobInfo(e));
@@ -89,6 +92,8 @@ function sortJobs(cities, keywords){
 }
 
 function getKeyScore(jobInfo, keywords){
+  /* Looks throught the jobInfo and returns a score based on how many keywords it contains 
+     3x the points if the keyword is in the title */
   const jobInfoLC = {
     title: jobInfo.title.toLowerCase(),
     body: jobInfo.body.toLowerCase()
@@ -97,17 +102,16 @@ function getKeyScore(jobInfo, keywords){
     let v = 0;
     if(jobInfoLC.title.includes(e.key)){
       v += e.value * 3;
-      //console.log('Found ' + e.key + ' in title ' + e.value * 3);
     }
     if(jobInfoLC.body.includes(e.key)){
       v += e.value;
-      //console.log('Found ' + e.key + ' in body ' + e.value);
     }
     return s + v;
   }, 0);
 }
 
 function getJobInfo(job){
+  /* Grabs text from the url of a job */
   return new Promise((resolve, reject) => {
     request({url: job.url, timeout: 1500}, (error, response, body) => {
       // If we can load the page add that to the info,
